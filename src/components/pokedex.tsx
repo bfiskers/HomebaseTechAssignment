@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PokeDisplay from './pokeDisplay';
 
 function Pokedex() {
     const [num, setNum] = useState("");
-    const [activeNum, setActiveNum] = useState(1);
-    const [errors, setErrors] = useState(0);
+    let activeNum = useRef(1);
+    let errors = useRef(2);
     const maxNum = 898;
     const blankData = {
         name: "",
@@ -18,29 +18,31 @@ function Pokedex() {
     }
     const [pokeData, setPokeData] = useState(blankData);
     const skipNumber = () => {
-        setActiveNum(+num)
+        activeNum.current = +num;
+        findPokemon(+num);
     }
     const goBack = () => {
-        let newNum = activeNum - 1
+        let newNum = activeNum.current - 1
         if(newNum <= 0) newNum = maxNum
-        setActiveNum(newNum);
+        activeNum.current = newNum;
+        findPokemon(newNum);
     }
     const goForward = () => {
-        let newNum = activeNum + 1
+        let newNum = activeNum.current + 1
         if(newNum > maxNum) newNum = 1
-        setActiveNum(newNum);
+        activeNum.current = newNum;
+        findPokemon(newNum);
     }
     const findPokemon = (num:Number) => {
-        setPokeData(blankData);
-        setErrors(2);
-        fetch("https://pokeapi.co/api/v2/pokemon/" + activeNum + "/")
+        fetch("https://pokeapi.co/api/v2/pokemon/" + num + "/")
             .then(response => response.json())
-            .then(data => {setPokeData(data); setErrors(0);})
-            .catch(() => setErrors(1))
+            .then(data => {errors.current = 0; setPokeData(data);})
+            .catch(() => {errors.current = 1; setPokeData(blankData);})
     }
     useEffect(() => {
-        findPokemon(activeNum);
-    }, [activeNum]);
+        errors.current = 0
+        findPokemon(1)
+    }, []);
     return (
         <>
             <div style={{marginLeft: 40, marginRight: 40, minWidth: 460}} className='card'>
@@ -77,7 +79,7 @@ function Pokedex() {
                     </div>
                 </div>
             </div>
-            {PokeDisplay(errors, "number", pokeData)}
+            {PokeDisplay(errors.current, "number", pokeData)}
         </>
     );
 }

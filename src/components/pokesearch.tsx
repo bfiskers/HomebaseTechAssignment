@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {capitalizeFirstLetter} from '../helpers';
 import PokeDisplay from './pokeDisplay';
 
 function PokeSearch() {
     const [name, setName] = useState("");
-    const [errors, setErrors] = useState(2);
+    const errors = useRef(2);
     const blankData = {
         name: "",
         height: 0,
@@ -17,12 +17,10 @@ function PokeSearch() {
     }
     const [pokeData, setPokeData] = useState(blankData);
     const findPokemon = () => {
-        setPokeData(blankData);
-        setErrors(2);
         fetch("https://pokeapi.co/api/v2/pokemon/" + name.toLowerCase().trim() + "/")
             .then(response => response.json())
-            .then(data => {setPokeData(data); setErrors(0);})
-            .catch(() => setErrors(1))
+            .then(data => {errors.current = 0; setPokeData(data);})
+            .catch(() => {errors.current = 1; setPokeData(blankData);})
     }
     return (
         <>
@@ -46,7 +44,7 @@ function PokeSearch() {
                     </div>
                 </div>
             </div>
-            {PokeDisplay(errors, "name", pokeData)}
+            {PokeDisplay(errors.current, "name", pokeData)}
         </>
     );
 }
