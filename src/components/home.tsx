@@ -3,9 +3,31 @@ import Pokedex from './pokedex';
 import PokeSearch from './pokesearch';
 
 function Home() {
-    const [active, setActive] = useState(0);
+    let lastKnownState = Object(window.localStorage.getItem(`lastKnown_${window.location.href}`)); 
+    lastKnownState = lastKnownState && JSON.parse(lastKnownState);
+    const [active, setActive] = useState(lastKnownState && lastKnownState.conditions ? lastKnownState.conditions.active : 0);
+    
     const pages = ["PokeSearch", "Pokedex"];
-    const components = [<PokeSearch/>, <Pokedex/>];
+    let lastKnownStatePS = window.localStorage.getItem(`lastKnownPS_${window.location.href}`); 
+    lastKnownStatePS = lastKnownStatePS && JSON.parse(lastKnownStatePS);
+    let lKSPS = Object(lastKnownStatePS);
+
+    let lastKnownStatePD = window.localStorage.getItem(`lastKnownPD_${window.location.href}`); 
+    lastKnownStatePD = lastKnownStatePD && JSON.parse(lastKnownStatePD);
+    let lKSPD = Object(lastKnownStatePD);
+    
+    const components = [PokeSearch(lKSPS ? lKSPS.conditions : {}), Pokedex(lKSPD ? lKSPD.conditions : {})];
+
+    window.addEventListener("beforeunload", () => {
+        window.localStorage.setItem(
+          `lastKnown_${window.location.href}`,
+          JSON.stringify({
+            conditions: {
+              active
+            }
+          })
+        );
+    });
     return (
         <>
             <div className="tabs is-centered is-large">

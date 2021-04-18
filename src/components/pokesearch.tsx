@@ -1,27 +1,39 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {capitalizeFirstLetter} from '../helpers';
+import { useState, useRef } from 'react';
 import PokeDisplay from './pokeDisplay';
+import {blankData} from '../helpers';
 
-function PokeSearch() {
-    const [name, setName] = useState("");
-    const errors = useRef(2);
-    const blankData = {
-        name: "",
-        height: 0,
-        weight: 0,
-        types: [{type: {name: ""}}],
-        sprites: {
-            front_default: "",
-            back_default: ""
-        }
+function PokeSearch(starter:Object) {
+    const state = {
+        errors: 2,
+        pokeData: blankData,
+        ...starter
     }
-    const [pokeData, setPokeData] = useState(blankData);
+    const [name, setName] = useState("");
+    const errors = useRef(state.errors);
+    const [pokeData, setPokeData] = useState(state.pokeData);
     const findPokemon = () => {
         fetch("https://pokeapi.co/api/v2/pokemon/" + name.toLowerCase().trim() + "/")
             .then(response => response.json())
-            .then(data => {errors.current = 0; setPokeData(data);})
-            .catch(() => {errors.current = 1; setPokeData(blankData);})
+            .then(data => {
+                errors.current = 0; 
+                setPokeData(data);
+            })
+            .catch(() => {
+                errors.current = 1; 
+                setPokeData(blankData);
+            })
     }
+    window.addEventListener("beforeunload", () => {
+        window.localStorage.setItem(
+          `lastKnownPS_${window.location.href}`,
+          JSON.stringify({
+            conditions: {
+              errors: errors.current,
+              pokeData
+            }
+          })
+        );
+    });
     return (
         <>
             <div style={{marginLeft: 40, marginRight: 40, minWidth: 460}} className='card'>
@@ -44,7 +56,9 @@ function PokeSearch() {
                     </div>
                 </div>
             </div>
-            {PokeDisplay(errors.current, "name", pokeData)}
+            {errors.current !== 2 ?
+            PokeDisplay(errors.current, "name", pokeData):
+            null}
         </>
     );
 }

@@ -1,22 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PokeDisplay from './pokeDisplay';
+import {blankData} from '../helpers';
 
-function Pokedex() {
-    const [num, setNum] = useState("");
-    let activeNum = useRef(1);
-    let errors = useRef(2);
-    const maxNum = 898;
-    const blankData = {
-        name: "",
-        height: 0,
-        weight: 0,
-        types: [{type: {name: ""}}],
-        sprites: {
-            front_default: "",
-            back_default: ""
-        }
+function Pokedex(starter:Object) {
+    const state = {
+        errors: 2,
+        pokeData: blankData,
+        activeNum: 1,
+        ...starter
     }
-    const [pokeData, setPokeData] = useState(blankData);
+    const [num, setNum] = useState("");
+    let activeNum = useRef(state.activeNum);
+    let errors = useRef(state.errors);
+    const maxNum = 898;
+    const [pokeData, setPokeData] = useState(state.pokeData);
     const skipNumber = () => {
         activeNum.current = +num;
         findPokemon(+num);
@@ -36,13 +33,33 @@ function Pokedex() {
     const findPokemon = (num:Number) => {
         fetch("https://pokeapi.co/api/v2/pokemon/" + num + "/")
             .then(response => response.json())
-            .then(data => {errors.current = 0; setPokeData(data);})
-            .catch(() => {errors.current = 1; setPokeData(blankData);})
+            .then(data => {
+                errors.current = 0; 
+                setPokeData(data);
+            })
+            .catch(() => {
+                errors.current = 1; 
+                setPokeData(blankData);
+            })
     }
     useEffect(() => {
-        errors.current = 0
-        findPokemon(1)
+        if(errors.current === 2){
+            errors.current = 0
+            findPokemon(1)
+        }
     }, []);
+    window.addEventListener("beforeunload", () => {
+        window.localStorage.setItem(
+          `lastKnownPD_${window.location.href}`,
+          JSON.stringify({
+            conditions: {
+              errors: errors.current,
+              pokeData,
+              activeNum: activeNum.current
+            }
+          })
+        );
+    });
     return (
         <>
             <div style={{marginLeft: 40, marginRight: 40, minWidth: 460}} className='card'>
