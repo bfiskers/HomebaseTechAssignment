@@ -3,9 +3,9 @@ import Pokedex from './pokedex';
 import PokeSearch from './pokesearch';
 
 function Home() {
-    let lastKnownState = Object(window.localStorage.getItem(`lastKnown_${window.location.href}`)); 
-    lastKnownState = lastKnownState && JSON.parse(lastKnownState);
-    const [active, setActive] = useState(lastKnownState && lastKnownState.conditions ? lastKnownState.conditions.active : 0);
+    let lastKnownState = window.localStorage.getItem(`lastKnown_${window.location.href}`); 
+    let lastKnownState2 = Object(lastKnownState && JSON.parse(lastKnownState));
+    const [active, setActive] = useState(lastKnownState2 && lastKnownState2.conditions ? lastKnownState2.conditions.active : 0);
     
     const pages = ["PokeSearch", "Pokedex"];
     let lastKnownStatePS = window.localStorage.getItem(`lastKnownPS_${window.location.href}`); 
